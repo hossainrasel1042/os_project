@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Socket Chat</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        #messages { border: 1px solid #ccc; height: 300px; overflow-y: scroll; padding: 10px; }
+        #inputArea { margin-top: 10px; }
+        #input { width: 70%; }
+        #sendBtn { width: 25%; }
+    </style>
+</head>
+<body>
+    <h2>Global Chat</h2>
+    <div id="messages"></div>
+
+    <div id="inputArea">
+        <input id="input" autocomplete="off" placeholder="Type your message..." />
+        <button id="sendBtn">Send</button>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const uid = urlParams.get('uid');
+
+        if (!uid) {
+            alert("Invalid entry. Go to /enter to start chat.");
+            throw new Error("No UID found");
+        }
+
+        const socket = io();
+        socket.emit('join', uid);
+
+        const input = document.getElementById('input');
+        const sendBtn = document.getElementById('sendBtn');
+        const messages = document.getElementById('messages');
+
+        socket.on('chat message', (msg) => {
+            const div = document.createElement('div');
+            div.textContent = msg;
+            messages.appendChild(div);
+            messages.scrollTop = messages.scrollHeight;
+        });
+
+        sendBtn.onclick = () => {
+            if (input.value.trim() !== '') {
+                socket.emit('chat message', input.value);
+                input.value = '';
+            }
+        };
+
+        input.addEventListener("keydown", function(e) {
+            if (e.key === "Enter") sendBtn.click();
+        });
+    </script>
+</body>
+</html>
+
